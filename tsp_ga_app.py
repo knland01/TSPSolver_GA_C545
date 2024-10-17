@@ -58,7 +58,7 @@ if st.button("Run GA"):
         best_distance = solver.calc_total_distance(best_path)
         fitness_progress.append(best_distance)
         shortest_paths.append(best_path)
-        generation_plots.append((best_path, best_distance))
+        
         # Display current generation and best path details
         # st.metric("Generation", generation + 1)
         # st.metric("Best Distance", f"{best_distance:.2f}")
@@ -75,25 +75,27 @@ if st.button("Run GA"):
         ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
         ax.set_title(f"Best Path - Generation {generation + 1}")
         ax.legend()
-        
+        generation_plots.append(fig)
         dynamic_plot_placeholder.pyplot(fig)
         # st.pyplot(fig) # static plot
         time.sleep(animation_speed)
     
-    with dynamic_slider_placeholder:
-        selected_generation = st.slider("Select Generation", 1, max_gens, max_gens)  
+    # with dynamic_slider_placeholder:
+    
+    selected_generation = st.slider("Select Generation", 1, max_gens, max_gens) 
+    st.pyplot(generation_plots[selected_generation - 1]) 
 
-    best_path, best_distance = generation_plots[selected_generation - 1]
-    fig, ax = plt.subplots() 
-    # [3] Obtain x, y coordinates from the coordinates dictionary
-    tour_x = [solver.city_coords[city][0] for city in best_path]
-    tour_y = [solver.city_coords[city][1] for city in best_path]
-    # [4] Add x, y coords to the axis object
-    # ... 'r-' = draw red line | 'o' = circular markers
-    ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
-    ax.set_title(f"Generation {selected_generation} - Best Distance {best_distance:.2f}")
-    ax.legend()
-    dynamic_plot_placeholder.pyplot(fig)
+    # best_path, best_distance = generation_plots[selected_generation - 1]
+    # fig, ax = plt.subplots() 
+    # # [3] Obtain x, y coordinates from the coordinates dictionary
+    # tour_x = [solver.city_coords[city][0] for city in best_path]
+    # tour_y = [solver.city_coords[city][1] for city in best_path]
+    # # [4] Add x, y coords to the axis object
+    # # ... 'r-' = draw red line | 'o' = circular markers
+    # ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
+    # ax.set_title(f"Generation {selected_generation} - Best Distance {best_distance:.2f}")
+    # ax.legend()
+    # st.pyplot(fig)
     
 
 
