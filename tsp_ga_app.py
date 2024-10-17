@@ -84,9 +84,11 @@ if st.button("Run GA"):
     
     # with dynamic_slider_placeholder:
     
-    # selected_generation = st.slider("Select Generation", 1, max_gens, max_gens) 
-        selected_generation = st.slider("Select Generation", 1, max_gens, st.session_state['generation_slider']) 
-    st.pyplot(generation_plots[selected_generation - 1]) 
+
+    selected_generation = st.slider("Select Generation", 1, max_gens, st.session_state['generation_slider'], key="unique_generation_slider") 
+    st.session_state["generation_slider"] = selected_generation
+
+    # st.pyplot(generation_plots[selected_generation - 1]) 
 
     best_path, best_distance = generation_plots[selected_generation - 1]
     fig, ax = plt.subplots() 
