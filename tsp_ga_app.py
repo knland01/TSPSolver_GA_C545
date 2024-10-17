@@ -35,7 +35,7 @@ solver = TSPSolver_GA(
 )
 
 # DYNAMIC COMPONENTS:
-animation_speed = st.slider("Animation Speed (seconds per generation)", 0.5, 4.0, 0.5)
+animation_speed = st.slider("Animation Speed (seconds per generation)", 0.1, 3.0, 0.5)
 dynamic_plot_placeholder = st.empty()
 # max_gens = solver.max_generations
 
@@ -60,14 +60,16 @@ if st.button("Run GA"):
         tour_x = [solver.city_coords[city][0] for city in best_path]
         tour_y = [solver.city_coords[city][1] for city in best_path]
         ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
-        ax.set_title(f"Best Path - Generation {generation + 1}")
+        ax.set_title(f"Best Path {best_path:.2} - Generation {generation + 1}")
         ax.legend()
 
         dynamic_plot_placeholder.pyplot(fig)
         time.sleep(animation_speed)
+        plt.close(fig)
+
     
     # EVOLUTION OF SOLUTIONS OVER GENERATIONS:
-    fig, ax = plt.subplots()
+    fig1, ax = plt.subplots()
     ax.plot(range(len(fitness_progress)), fitness_progress, label="Best Distance")
     ax.set_xlabel("Generation")
     ax.set_ylabel("Best Distance")
@@ -77,7 +79,8 @@ if st.button("Run GA"):
     else:
         tick_interval = 20
     ax.set_xticks(range(0, len(fitness_progress), tick_interval))
-    st.pyplot(fig)
+    st.pyplot(fig1)
+
 
 
 
@@ -88,13 +91,18 @@ if st.button("Run GA"):
     st.write(f"**Final Best Distance:** {final_best_distance:.2f}")
 
     # PLOT & DISPLAY FINAL SOLUTION:
-    fig, ax = plt.subplots()
+    fig2, ax = plt.subplots()
     tour_x = [solver.city_coords[city][0] for city in final_best_path]
     tour_y = [solver.city_coords[city][1] for city in final_best_path]
     ax.plot(tour_x, tour_y, 'g-', marker='o', label="Final Best Path")
     ax.set_title("Final Best Path Found")
     ax.legend()
-    st.pyplot(fig)
+    st.pyplot(fig2)
+
+    # EXPLICITLY CLOSE THE FIGURES TO FREE MEMORY:
+    time.sleep(60)
+    plt.close(fig1)
+    plt.close(fig2)
 
     
 
