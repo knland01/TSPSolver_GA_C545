@@ -77,7 +77,7 @@ if st.button("Run GA"):
         ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
         ax.set_title(f"Best Path - Generation {generation + 1}")
         ax.legend()
-        generation_plots.append(fig)
+        generation_plots.append(best_path, best_distance)
         dynamic_plot_placeholder.pyplot(fig)
         # st.pyplot(fig) # static plot
         time.sleep(animation_speed)
@@ -88,19 +88,19 @@ if st.button("Run GA"):
     selected_generation = st.slider("Select Generation", 1, max_gens, st.session_state['generation_slider'], key="unique_generation_slider") 
     st.session_state["generation_slider"] = selected_generation
 
-    st.pyplot(generation_plots[selected_generation - 1]) 
+    # st.pyplot(generation_plots[selected_generation - 1]) 
 
-    # best_path, best_distance = generation_plots[selected_generation - 1]
-    # fig, ax = plt.subplots() 
-    # # [3] Obtain x, y coordinates from the coordinates dictionary
-    # tour_x = [solver.city_coords[city][0] for city in best_path]
-    # tour_y = [solver.city_coords[city][1] for city in best_path]
-    # # [4] Add x, y coords to the axis object
-    # # ... 'r-' = draw red line | 'o' = circular markers
-    # ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
-    # ax.set_title(f"Generation {selected_generation} - Best Distance {best_distance:.2f}")
-    # ax.legend()
-    # st.pyplot(fig)
+    best_path, best_distance = generation_plots[selected_generation - 1]
+    fig, ax = plt.subplots() 
+    # [3] Obtain x, y coordinates from the coordinates dictionary
+    tour_x = [solver.city_coords[city][0] for city in best_path]
+    tour_y = [solver.city_coords[city][1] for city in best_path]
+    # [4] Add x, y coords to the axis object
+    # ... 'r-' = draw red line | 'o' = circular markers
+    ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
+    ax.set_title(f"Generation {selected_generation} - Best Distance {best_distance:.2f}")
+    ax.legend()
+    st.pyplot(fig)
     
 
 
