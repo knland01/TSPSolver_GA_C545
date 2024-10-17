@@ -38,11 +38,13 @@ solver = TSPSolver_GA(
     assist=assist
 )
 
-# ANIMATION OPTIONS:
+# DYNAMIC COMPONENTS:
 animation_speed = st.slider("Animation Speed (seconds per generation)", 0.1, 2.0, 0.5)
 dynamic_plot_placeholder = st.empty()
 dynamic_slider_placeholder = st.empty()
 max_gens = solver.max_generations
+if 'generation_slider' not in st.session_state:
+    st.session_state['generation_slider'] = 1
 
 # Run the algorithm and visualize progress
 if st.button("Run GA"):
@@ -75,27 +77,28 @@ if st.button("Run GA"):
         ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
         ax.set_title(f"Best Path - Generation {generation + 1}")
         ax.legend()
-        generation_plots.append(fig)
+        # generation_plots.append(fig)
         dynamic_plot_placeholder.pyplot(fig)
         # st.pyplot(fig) # static plot
         time.sleep(animation_speed)
     
     # with dynamic_slider_placeholder:
     
-    selected_generation = st.slider("Select Generation", 1, max_gens, max_gens) 
+    # selected_generation = st.slider("Select Generation", 1, max_gens, max_gens) 
+        selected_generation = st.slider("Select Generation", 1, max_gens, st.session_state['generation_slider']) 
     st.pyplot(generation_plots[selected_generation - 1]) 
 
-    # best_path, best_distance = generation_plots[selected_generation - 1]
-    # fig, ax = plt.subplots() 
-    # # [3] Obtain x, y coordinates from the coordinates dictionary
-    # tour_x = [solver.city_coords[city][0] for city in best_path]
-    # tour_y = [solver.city_coords[city][1] for city in best_path]
-    # # [4] Add x, y coords to the axis object
-    # # ... 'r-' = draw red line | 'o' = circular markers
-    # ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
-    # ax.set_title(f"Generation {selected_generation} - Best Distance {best_distance:.2f}")
-    # ax.legend()
-    # st.pyplot(fig)
+    best_path, best_distance = generation_plots[selected_generation - 1]
+    fig, ax = plt.subplots() 
+    # [3] Obtain x, y coordinates from the coordinates dictionary
+    tour_x = [solver.city_coords[city][0] for city in best_path]
+    tour_y = [solver.city_coords[city][1] for city in best_path]
+    # [4] Add x, y coords to the axis object
+    # ... 'r-' = draw red line | 'o' = circular markers
+    ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
+    ax.set_title(f"Generation {selected_generation} - Best Distance {best_distance:.2f}")
+    ax.legend()
+    st.pyplot(fig)
     
 
 
