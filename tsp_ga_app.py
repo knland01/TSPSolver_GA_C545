@@ -25,7 +25,7 @@ assist = True
 
 # ANIMATION OPTIONS:
 animation_speed = st.slider("Animation Speed (seconds per generation)", 0.1, 2.0, 0.5)
-same_spot_plot = st.empty()
+dynamic_plot = st.empty()
 
 # Initialize the TSPSolver_GA instance
 solver = TSPSolver_GA(
@@ -70,8 +70,9 @@ if st.button("Run GA"):
         ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
         ax.set_title(f"Best Path - Generation {generation + 1}")
         ax.legend()
-        # st.pyplot(fig) # Hand the figure over to streamlit to display in browser
-        same_spot_plot.pyplot(fig)
+        
+        dynamic_plot.pyplot(fig)
+        st.pyplot(fig) # static plot
         time.sleep(animation_speed)
 
     # LINE CHART DISPLAYING FITNESS OF SOLUTION ACROSS GENERATIONS
