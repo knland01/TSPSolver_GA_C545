@@ -1,13 +1,13 @@
 import streamlit as st
 import matplotlib.pyplot as plt
-from TSP_GA import TSPSolver_GA  # Ensure this points to your class file
+from TSP_GA import TSPSolver_GA 
 import time
 
-# Title and Instructions
+# TITLE + INSTRUCTIONS:
 st.title("TSP Solver Using Genetic Algorithm")
 st.write("This app demonstrates the evolution of a solution to the Traveling Salesman Problem using a Genetic Algorithm.")
 
-# Collect GA Parameters from User
+# USER DEFINED GA PARAMS:
 tsp_file = st.text_input("Enter TSP file path:", "Random100.tsp")
 data_set = st.selectbox("Select Data Set", ["D1_single_swap", "D2_single_invert", "D3_order_swap", "D4_order_invert"])
 pop_size = st.slider("Population Size", 5, 500, 5)
@@ -19,13 +19,9 @@ st.write(f"SECOND HALF: Mutation Probability = {m_prob_high * 0.20:.2f}")
 solution_type = st.selectbox("Solution Type", ["dict", "list"])
 algorithm = st.selectbox("Algorithm", ["GENETIC ALGORITHM", "BRUTE FORCE", "GREEDY: CLOSEST EDGE", "DEPTH FIRST SEARCH", "BREADTH FIRST SEARCH"])
 assist = True
-# algorithm = st.text_input("Algorithm", "GENETIC ALGORITHM") 
-# ... eventually make this a toggle for the different tsp algorithms?
-# assist = st.checkbox("Assist", True)
 
 
-
-# Initialize the TSPSolver_GA instance
+# TSPSolver_GA INSTANCE: 
 solver = TSPSolver_GA(
     tsp_file=tsp_file,
     data_set=data_set,
@@ -39,14 +35,9 @@ solver = TSPSolver_GA(
 )
 
 # DYNAMIC COMPONENTS:
-animation_speed = st.slider("Animation Speed (seconds per generation)", 0.1, 2.0, 0.5)
+animation_speed = st.slider("Animation Speed (seconds per generation)", 0.5, 4.0, 0.5)
 dynamic_plot_placeholder = st.empty()
-dynamic_slider_placeholder = st.empty()
 max_gens = solver.max_generations
-generation_plots = []
-
-if 'generation_slider' not in st.session_state:
-    st.session_state['generation_slider'] = 1
 
 # Run the algorithm and visualize progress
 if st.button("Run GA"):
@@ -55,43 +46,32 @@ if st.button("Run GA"):
     generation = 0
 
 
-    # Run through each generation and visualize evolution
+    # RUN THROUGH EACH GENERATION
     for generation in range(solver.max_generations):
         solver.genetic_algorithm()  # Run a single generation
         best_path = min(solver.current_population, key=solver.calc_total_distance)
         best_distance = solver.calc_total_distance(best_path)
         fitness_progress.append(best_distance)
-        shortest_paths.append(best_path)
+        shortest_paths.append(best_path)     
+
         
-        # Display current generation and best path details
-        # st.metric("Generation", generation + 1)
-        # st.metric("Best Distance", f"{best_distance:.2f}")
-        
-        # NOTE: PLOT WITH MATPLOTLIB
-        # [1] Figure object = 
-        # [2] Axis object = array of axes
+        # PLOT WITH MATPLOTLIB
         fig, ax = plt.subplots() 
-        # [3] Obtain x, y coordinates from the coordinates dictionary
         tour_x = [solver.city_coords[city][0] for city in best_path]
         tour_y = [solver.city_coords[city][1] for city in best_path]
-        # [4] Add x, y coords to the axis object
-        # ... 'r-' = draw red line | 'o' = circular markers
         ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
         ax.set_title(f"Best Path - Generation {generation + 1}")
         ax.legend()
-        generation_plots.append((best_path, best_distance))
+
         dynamic_plot_placeholder.pyplot(fig)
-        # st.pyplot(fig) # static plot
         time.sleep(animation_speed)
     
-    # LINE CHART DISPLAYING FITNESS OF SOLUTION ACROSS GENERATIONS
-    # st.line_chart(fitness_progress)
+    # EVOLUTION OF SOLUTIONS OVER GENERATIONS:
     fig, ax = plt.subplots()
     ax.plot(range(len(fitness_progress)), fitness_progress, label="Best Distance")
     ax.set_xlabel("Generation")
     ax.set_ylabel("Best Distance")
     ax.set_title("Evolution of Best Distance across Generations")
-
     if solver.max_generations <= 50:
         tick_interval = 2
     else:
@@ -99,13 +79,13 @@ if st.button("Run GA"):
     ax.set_xticks(range(0, len(fitness_progress), tick_interval))
 
 
-    # Display final results
+    # FINAL SOLUTION
     st.write("### Final Solution:")
     final_best_distance = min(fitness_progress)
     final_best_path = shortest_paths[fitness_progress.index(final_best_distance)]
     st.write(f"**Final Best Distance:** {final_best_distance:.2f}")
 
-    # Plot the final best path found
+    # PLOT & DISPLAY FINAL SOLUTION:
     fig, ax = plt.subplots()
     tour_x = [solver.city_coords[city][0] for city in final_best_path]
     tour_y = [solver.city_coords[city][1] for city in final_best_path]
@@ -113,26 +93,46 @@ if st.button("Run GA"):
     ax.set_title("Final Best Path Found")
     ax.legend()
     st.pyplot(fig)
+
+    
+
+
+# CODE GRAVEYARD:
+
+# if 'generation_slider' not in st.session_state:
+#     st.session_state['generation_slider'] = 1
+
+# generation_plots = []
+# dynamic_slider_placeholder = st.empty()
+
+        # generation_plots.append((best_path, best_distance))
+
     # with dynamic_slider_placeholder:
     
-if generation_plots:
-    selected_generation = st.slider("Select Generation", 1, max_gens, st.session_state['generation_slider'], key="unique_generation_slider") 
-    st.session_state["generation_slider"] = selected_generation
+# if generation_plots:
+#     selected_generation = st.slider("Select Generation", 1, max_gens, st.session_state['generation_slider'], key="unique_generation_slider") 
+#     st.session_state["generation_slider"] = selected_generation
 
-    # st.pyplot(generation_plots[selected_generation - 1]) 
+#     # st.pyplot(generation_plots[selected_generation - 1]) 
 
-    best_path, best_distance = generation_plots[selected_generation - 1]
-    fig, ax = plt.subplots() 
-    # [3] Obtain x, y coordinates from the coordinates dictionary
-    tour_x = [solver.city_coords[city][0] for city in best_path]
-    tour_y = [solver.city_coords[city][1] for city in best_path]
-    # [4] Add x, y coords to the axis object
-    # ... 'r-' = draw red line | 'o' = circular markers
-    ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
-    ax.set_title(f"Generation {selected_generation} - Best Distance {best_distance:.2f}")
-    ax.legend()
-    st.pyplot(fig)
-    
-
+#     best_path, best_distance = generation_plots[selected_generation - 1]
+#     fig, ax = plt.subplots() 
+#     # [3] Obtain x, y coordinates from the coordinates dictionary
+#     tour_x = [solver.city_coords[city][0] for city in best_path]
+#     tour_y = [solver.city_coords[city][1] for city in best_path]
+#     # [4] Add x, y coords to the axis object
+#     # ... 'r-' = draw red line | 'o' = circular markers
+#     ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
+#     ax.set_title(f"Generation {selected_generation} - Best Distance {best_distance:.2f}")
+#     ax.legend()
+#     st.pyplot(fig)
 
 
+    # st.line_chart(fitness_progress)
+            # Display current generation and best path details
+        # st.metric("Generation", generation + 1)
+        # st.metric("Best Distance", f"{best_distance:.2f}")
+
+        # algorithm = st.text_input("Algorithm", "GENETIC ALGORITHM") 
+# ... eventually make this a toggle for the different tsp algorithms?
+# assist = st.checkbox("Assist", True)
