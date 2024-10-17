@@ -1,6 +1,7 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 from TSP_GA import TSPSolver_GA  # Ensure this points to your class file
+import time
 
 # Title and Instructions
 st.title("TSP Solver Using Genetic Algorithm")
@@ -11,12 +12,20 @@ tsp_file = st.text_input("Enter TSP file path:", "Random100.tsp")
 data_set = st.selectbox("Select Data Set", ["D1_single_swap", "D2_single_invert", "D3_order_swap", "D4_order_invert"])
 pop_size = st.slider("Population Size", 5, 500, 5)
 max_gen = st.slider("Maximum Generations", 5, 500, 5)
-c_prob_high = st.slider("Crossover Probability [FIRST HALF]", 0.5, 1.0, 0.95)
-st.write(f"NOTE: Crossover Probability [SECOND HALF] = {c_prob_high * 0.75:.2f}")
-m_prob_high = st.slider("FIRST: Mutation Probability", 0.01, 0.1, 0.05)
+c_prob_high = st.slider("FIRST HALF: Crossover Probability", 0.5, 1.0, 0.95)
+st.write(f"SECOND HALF: Crossover Probability = {c_prob_high * 0.75:.2f}")
+m_prob_high = st.slider("FIRST HALF: Mutation Probability", 0.01, 0.1, 0.05)
+st.write(f"SECOND HALF: Mutation Probability = {m_prob_high * 0.20:.2f}")
 solution_type = st.selectbox("Solution Type", ["dict", "list"])
-algorithm = st.text_input("Algorithm", "GENETIC ALGORITHM")
-assist = st.checkbox("Assist", True)
+algorithm = st.selectbox("Algorithm", ["GENETIC ALGORITHM", "BRUTE FORCE", "GREEDY: CLOSEST EDGE", "DEPTH FIRST SEARCH", "BREADTH FIRST SEARCH"])
+assist = True
+# algorithm = st.text_input("Algorithm", "GENETIC ALGORITHM") 
+# ... eventually make this a toggle for the different tsp algorithms?
+# assist = st.checkbox("Assist", True)
+
+# ANIMATION OPTIONS:
+animation_speed = st.slider("Animation Speed (seconds per generation)", 0.1, 2.0, 0.5)
+same_spot_plot = st.empty()
 
 # Initialize the TSPSolver_GA instance
 solver = TSPSolver_GA(
@@ -49,17 +58,37 @@ if st.button("Run GA"):
         st.metric("Generation", generation + 1)
         st.metric("Best Distance", f"{best_distance:.2f}")
         
-        # Update path plot with best path in the current generation
-        fig, ax = plt.subplots()
+        # NOTE: PLOT WITH MATPLOTLIB
+        # [1] Figure object = 
+        # [2] Axis object = array of axes
+        fig, ax = plt.subplots() 
+        # [3] Obtain x, y coordinates from the coordinates dictionary
         tour_x = [solver.city_coords[city][0] for city in best_path]
         tour_y = [solver.city_coords[city][1] for city in best_path]
+        # [4] Add x, y coords to the axis object
+        # ... 'r-' = draw red line | 'o' = circular markers
         ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
         ax.set_title(f"Best Path - Generation {generation + 1}")
         ax.legend()
-        st.pyplot(fig)
+        # st.pyplot(fig) # Hand the figure over to streamlit to display in browser
+        same_spot_plot.pyplot(fig)
+        time.sleep(animation_speed)
 
-    # Display overall fitness evolution
-    st.line_chart(fitness_progress)
+    # LINE CHART DISPLAYING FITNESS OF SOLUTION ACROSS GENERATIONS
+    # st.line_chart(fitness_progress)
+    st.write("### BEST DISTANCE OVER GENERATIONS")
+    fig, ax = plt.subplots()
+    ax.plot(range(len(fitness_progress)), fitness_progress, label="Best Distance")
+    ax.set_xlabel("Generation")
+    ax.set_ylabal("Best Distance")
+    ax.set_title("Evolution of Best Distance across Generations")
+
+    if solver.max_generations <= 50:
+        tick_interval = 2
+    else:
+        tick_interval = 20
+    ax.set_xticks(range(0, len(fitness_progress), tick_interval))
+
 
     # Display final results
     st.write("### Final Solution:")
