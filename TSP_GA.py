@@ -440,8 +440,8 @@ class TSPSolver_GA:
         solution = self.genetic_algorithm()
         end_time = time.perf_counter()
         elapsed_time = end_time - start_time
-        self.plot_cities()
-        self.plot_tour(solution['SOLUTION'])
+        # self.plot_cities()
+        # self.plot_tour(solution['SOLUTION'])
         # results[data_set] = {
         #     "ELAPSED TIME": elapsed_time,
         #     "SOLUTION": solution

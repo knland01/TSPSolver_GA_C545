@@ -4,7 +4,7 @@ from TSP_GA import TSPSolver_GA
 import time
 
 # TITLE + INSTRUCTIONS:
-st.title("TSP Solver Using Genetic Algorithm")
+st.title("Solving TSP w/ Genetic Algorithm")
 st.write("This app demonstrates the evolution of a solution to the Traveling Salesman Problem using a Genetic Algorithm.")
 
 # USER DEFINED GA PARAMS:
@@ -37,7 +37,7 @@ solver = TSPSolver_GA(
 # DYNAMIC COMPONENTS:
 animation_speed = st.slider("Animation Speed (seconds per generation)", 0.5, 4.0, 0.5)
 dynamic_plot_placeholder = st.empty()
-max_gens = solver.max_generations
+# max_gens = solver.max_generations
 
 # Run the algorithm and visualize progress
 if st.button("Run GA"):
@@ -77,6 +77,8 @@ if st.button("Run GA"):
     else:
         tick_interval = 20
     ax.set_xticks(range(0, len(fitness_progress), tick_interval))
+    st.pyplot(fig)
+
 
 
     # FINAL SOLUTION
