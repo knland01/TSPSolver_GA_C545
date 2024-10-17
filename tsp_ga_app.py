@@ -11,8 +11,9 @@ tsp_file = st.text_input("Enter TSP file path:", "Random100.tsp")
 data_set = st.selectbox("Select Data Set", ["D1_single_swap", "D2_single_invert", "D3_order_swap", "D4_order_invert"])
 pop_size = st.slider("Population Size", 5, 500, 5)
 max_gen = st.slider("Maximum Generations", 5, 500, 5)
-c_prob_high = st.slider("High Crossover Probability", 0.5, 1.0, 0.95)
-m_prob_high = st.slider("High Mutation Probability", 0.01, 0.1, 0.05)
+c_prob_high = st.slider("Crossover Probability [FIRST HALF]", 0.5, 1.0, 0.95)
+st.write(f"NOTE: Crossover Probability [SECOND HALF] = {c_prob_high * 0.75:.2f}")
+m_prob_high = st.slider("FIRST: Mutation Probability", 0.01, 0.1, 0.05)
 solution_type = st.selectbox("Solution Type", ["dict", "list"])
 algorithm = st.text_input("Algorithm", "GENETIC ALGORITHM")
 assist = st.checkbox("Assist", True)
@@ -46,7 +47,7 @@ if st.button("Run GA"):
 
         # Display current generation and best path details
         st.metric("Generation", generation + 1)
-        st.metric("Best Distance", best_distance)
+        st.metric("Best Distance", f"{best_distance:.2f}")
         
         # Update path plot with best path in the current generation
         fig, ax = plt.subplots()
@@ -64,7 +65,7 @@ if st.button("Run GA"):
     st.write("### Final Solution:")
     final_best_distance = min(fitness_progress)
     final_best_path = shortest_paths[fitness_progress.index(final_best_distance)]
-    st.write(f"**Final Best Distance:** {final_best_distance}")
+    st.write(f"**Final Best Distance:** {final_best_distance:.2f}")
     
     # Plot the final best path found
     fig, ax = plt.subplots()
