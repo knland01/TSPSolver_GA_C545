@@ -77,7 +77,7 @@ if st.button("Run GA"):
         ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
         ax.set_title(f"Best Path - Generation {generation + 1}")
         ax.legend()
-        generation_plots.append(best_path, best_distance)
+        generation_plots.append((best_path, best_distance))
         dynamic_plot_placeholder.pyplot(fig)
         # st.pyplot(fig) # static plot
         time.sleep(animation_speed)
