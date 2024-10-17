@@ -43,6 +43,8 @@ animation_speed = st.slider("Animation Speed (seconds per generation)", 0.1, 2.0
 dynamic_plot_placeholder = st.empty()
 dynamic_slider_placeholder = st.empty()
 max_gens = solver.max_generations
+generation_plots = []
+
 if 'generation_slider' not in st.session_state:
     st.session_state['generation_slider'] = 1
 
@@ -51,7 +53,7 @@ if st.button("Run GA"):
     fitness_progress = []
     shortest_paths = []
     generation = 0
-    generation_plots = []
+
 
     # Run through each generation and visualize evolution
     for generation in range(solver.max_generations):
@@ -82,55 +84,55 @@ if st.button("Run GA"):
         # st.pyplot(fig) # static plot
         time.sleep(animation_speed)
     
+    # LINE CHART DISPLAYING FITNESS OF SOLUTION ACROSS GENERATIONS
+    # st.line_chart(fitness_progress)
+    fig, ax = plt.subplots()
+    ax.plot(range(len(fitness_progress)), fitness_progress, label="Best Distance")
+    ax.set_xlabel("Generation")
+    ax.set_ylabel("Best Distance")
+    ax.set_title("Evolution of Best Distance across Generations")
+
+    if solver.max_generations <= 50:
+        tick_interval = 2
+    else:
+        tick_interval = 20
+    ax.set_xticks(range(0, len(fitness_progress), tick_interval))
+
+
+    # Display final results
+    st.write("### Final Solution:")
+    final_best_distance = min(fitness_progress)
+    final_best_path = shortest_paths[fitness_progress.index(final_best_distance)]
+    st.write(f"**Final Best Distance:** {final_best_distance:.2f}")
+
+    # Plot the final best path found
+    fig, ax = plt.subplots()
+    tour_x = [solver.city_coords[city][0] for city in final_best_path]
+    tour_y = [solver.city_coords[city][1] for city in final_best_path]
+    ax.plot(tour_x, tour_y, 'g-', marker='o', label="Final Best Path")
+    ax.set_title("Final Best Path Found")
+    ax.legend()
+    st.pyplot(fig)
     # with dynamic_slider_placeholder:
     
+if generation_plots:
+    selected_generation = st.slider("Select Generation", 1, max_gens, st.session_state['generation_slider'], key="unique_generation_slider") 
+    st.session_state["generation_slider"] = selected_generation
 
-selected_generation = st.slider("Select Generation", 1, max_gens, st.session_state['generation_slider'], key="unique_generation_slider") 
-st.session_state["generation_slider"] = selected_generation
+    # st.pyplot(generation_plots[selected_generation - 1]) 
 
-# st.pyplot(generation_plots[selected_generation - 1]) 
-
-best_path, best_distance = generation_plots[selected_generation - 1]
-fig, ax = plt.subplots() 
-# [3] Obtain x, y coordinates from the coordinates dictionary
-tour_x = [solver.city_coords[city][0] for city in best_path]
-tour_y = [solver.city_coords[city][1] for city in best_path]
-# [4] Add x, y coords to the axis object
-# ... 'r-' = draw red line | 'o' = circular markers
-ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
-ax.set_title(f"Generation {selected_generation} - Best Distance {best_distance:.2f}")
-ax.legend()
-st.pyplot(fig)
+    best_path, best_distance = generation_plots[selected_generation - 1]
+    fig, ax = plt.subplots() 
+    # [3] Obtain x, y coordinates from the coordinates dictionary
+    tour_x = [solver.city_coords[city][0] for city in best_path]
+    tour_y = [solver.city_coords[city][1] for city in best_path]
+    # [4] Add x, y coords to the axis object
+    # ... 'r-' = draw red line | 'o' = circular markers
+    ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
+    ax.set_title(f"Generation {selected_generation} - Best Distance {best_distance:.2f}")
+    ax.legend()
+    st.pyplot(fig)
     
 
 
 
-# LINE CHART DISPLAYING FITNESS OF SOLUTION ACROSS GENERATIONS
-# st.line_chart(fitness_progress)
-fig, ax = plt.subplots()
-ax.plot(range(len(fitness_progress)), fitness_progress, label="Best Distance")
-ax.set_xlabel("Generation")
-ax.set_ylabel("Best Distance")
-ax.set_title("Evolution of Best Distance across Generations")
-
-if solver.max_generations <= 50:
-    tick_interval = 2
-else:
-    tick_interval = 20
-ax.set_xticks(range(0, len(fitness_progress), tick_interval))
-
-
-# Display final results
-st.write("### Final Solution:")
-final_best_distance = min(fitness_progress)
-final_best_path = shortest_paths[fitness_progress.index(final_best_distance)]
-st.write(f"**Final Best Distance:** {final_best_distance:.2f}")
-
-# Plot the final best path found
-fig, ax = plt.subplots()
-tour_x = [solver.city_coords[city][0] for city in final_best_path]
-tour_y = [solver.city_coords[city][1] for city in final_best_path]
-ax.plot(tour_x, tour_y, 'g-', marker='o', label="Final Best Path")
-ax.set_title("Final Best Path Found")
-ax.legend()
-st.pyplot(fig)
