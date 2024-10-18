@@ -13,10 +13,10 @@ data_set = st.selectbox("Select Data Set", ["D1_single_swap", "D2_single_invert"
 pop_size = st.slider("Population Size", 5, 500, 5)
 max_gen = st.slider("Maximum Generations", 5, 1000, 5)
 c_prob_high = st.slider("FIRST HALF: Crossover Probability", 0.5, 1.0, 0.95)
-st.write(f"SECOND HALF: Crossover Probability = {c_prob_high * 0.75:.2f}")
-m_prob_high = st.slider("FIRST HALF: Mutation Probability", 0.01, 0.1, 0.05)
-st.write(f"SECOND HALF: Mutation Probability = {m_prob_high * 0.20:.2f}")
-solution_type = st.selectbox("Solution Type", ["dict", "list"])
+st.write(f"SECOND HALF: Crossover Probability = {c_prob_high * 0.85:.2f}")
+m_prob_high = st.slider("FIRST HALF: Mutation Probability", 0.01, 0.2, 0.05)
+st.write(f"SECOND HALF: Mutation Probability = {m_prob_high * 0.75:.2f}")
+# solution_type = st.selectbox("Solution Type", ["dict", "list"])
 algorithm = st.selectbox("Algorithm", ["GENETIC ALGORITHM", "BRUTE FORCE", "GREEDY: CLOSEST EDGE", "DEPTH FIRST SEARCH", "BREADTH FIRST SEARCH"])
 assist = True
 
@@ -32,7 +32,6 @@ solver = TSPSolver_GA(
     max_gen=max_gen,
     c_prob_high=c_prob_high,
     m_prob_high=m_prob_high,
-    solution_type=solution_type,
     algorithm=algorithm,
     assist=assist
 )
@@ -88,9 +87,9 @@ if st.button("Run GA"):
     ax.set_ylabel("Best Distance")
     ax.set_title("Evolution of Best Distance across Generations")
     if solver.max_generations <= 50:
-        tick_interval = 2
+        tick_interval = 5
     if solver.max_generations >= 100:
-        tick_interval = 50
+        tick_interval = 100
     else:
         tick_interval = 20
     ax.set_xticks(range(0, len(fitness_progress), tick_interval))
