@@ -18,7 +18,7 @@ m_prob_high = st.slider("FIRST HALF: Mutation Probability", 0.01, 0.1, 0.05)
 st.write(f"SECOND HALF: Mutation Probability = {m_prob_high * 0.20:.2f}")
 solution_type = st.selectbox("Solution Type", ["dict", "list"])
 algorithm = st.selectbox("Algorithm", ["GENETIC ALGORITHM", "BRUTE FORCE", "GREEDY: CLOSEST EDGE", "DEPTH FIRST SEARCH", "BREADTH FIRST SEARCH"])
-assist = True
+assist = False
 
 
 # TSPSolver_GA INSTANCE: 
@@ -35,7 +35,7 @@ solver = TSPSolver_GA(
 )
 
 # DYNAMIC COMPONENTS:
-animation_speed = st.slider("Animation Speed (seconds per generation)", 0.1, 3.0, 0.5)
+animation_speed = st.slider("Animation Speed (seconds per generation)", 0.0001, 3.0, 0.5)
 dynamic_plot_placeholder = st.empty()
 # max_gens = solver.max_generations
 
@@ -51,7 +51,9 @@ if st.button("Run GA"):
         solver.genetic_algorithm()  # Run a single generation
         best_path = min(solver.current_population, key=solver.calc_total_distance)
         best_distance = solver.calc_total_distance(best_path)
-        fitness_progress.append(best_distance)
+        best_fitness = solver.calc_fitness_score(best_path)
+        fitness_progress.append(best_fitness)
+        # fitness_progress.append(best_distance)
         shortest_paths.append(best_path)     
 
         
@@ -100,7 +102,6 @@ if st.button("Run GA"):
     st.pyplot(fig2)
 
     # EXPLICITLY CLOSE THE FIGURES TO FREE MEMORY:
-    time.sleep(3)
     plt.close(fig1)
     plt.close(fig2)
 

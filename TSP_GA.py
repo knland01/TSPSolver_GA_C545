@@ -179,19 +179,21 @@ class TSPSolver_GA:
         path_length = self.calc_total_distance(path)
         # print("PATH LENGTH", path_length)
         # print("INVERTED PATH LENGTH", 1 / path_length)
-        fitness_score1 = 1000 * (1 / path_length) # Scale floating pt value
+        fitness_score1 = 10000000 * (1 / path_length) # Scale floating pt value
         # fitness_score2 = 1000 * (1 / (path_length + 1e-6)) # Scale + avoid division by zero
         # fitness_score3 = 1000 * (1/ (path_length ** 2)) # Exaggerate diff btwn high / low scores.
         # ... [3] stronger selection pressure, speeds up convergence, may converge prematurely.
         # print("SCALED FITNESS SCORE1", fitness_score1)
         # print("SCALED FITNESS SCORE2", fitness_score2)
         # print("SCALED FITNESS SCORE3", fitness_score3)
+        # print(fitness_score1)
         return fitness_score1
 
     def _convert_to_probabilities(self, scores_list):
         # print("_convert_to_probabilities")
         # FIND THE SUM OF ALL SCORES:
         total_scores = sum(scores_list)
+        # print(total_scores)
         # print("TOTAL SCORES", total_scores)
         # print("SCORES LIST", scores_list)
         probabilities = []
