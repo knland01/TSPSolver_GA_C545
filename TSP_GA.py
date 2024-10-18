@@ -49,7 +49,8 @@ class TSPSolver_GA:
         # self.start_city = start_city
 
         # GENETIC ALGORITHM VARIABLES:
-        self.current_population = self.generate_random_pop # dict of chromosomes (paths) + length?
+         # dict of chromosomes (paths) + length?
+        self.current_population = []
         # Let's try list first as is typical...
         self.next_generation = [] # list of children to replace current population (if fitness score is better otherwise just add them to the population and kill off the worst ones equivalent to the num children added?)
         self.population_size = pop_size # Num potential solution paths in a population
@@ -66,7 +67,6 @@ class TSPSolver_GA:
         # MUTATION
         self.mutate_prob_HIGH = m_prob_high
         self.mutate_prob_LOW = m_prob_high * 0.2
-
 
         self.data_sets = {
             'D1_single_swap': (self.single_pt_crossover, self.swap_mutation), 
@@ -374,9 +374,9 @@ class TSPSolver_GA:
         # print("GENETIC_ALGORITHM")
         # print("DATA SET PASSED", data_set)
         # [1] 
-        self.current_population = []
+        # self.current_population = []
         children = []
-        next_generation = []
+        # next_generation = []
         # final_fit_score = 0
         # final_path = []
         
@@ -439,6 +439,7 @@ class TSPSolver_GA:
         shortest_paths = []
 
         start_time = time.perf_counter()
+        self.current_population = self.generate_random_pop()
         for generation in range(self.max_generations):
             best_distance, best_path = self.genetic_algorithm()
             fitness_progress.append(best_distance)
@@ -505,9 +506,9 @@ class TSPSolver_GA:
         plt.grid(True)
         plt.show()
         
-    def create_gui():
-        root = tk.Tk()
-        root.title("TSP Solver - Closest Edge Insertion Heuristic")
+    # def create_gui():
+    #     root = tk.Tk()
+    #     root.title("TSP Solver - Closest Edge Insertion Heuristic")
 
 
     """ _PRINT_RESULTS:
@@ -559,7 +560,7 @@ if __name__ == "__main__":
     ]
 
     for data_set in data_sets:
-        solve = TSPSolver_GA('Random100.tsp', data_set, pop_size=10, max_gen=10, run=True)
+        solve = TSPSolver_GA('Random100.tsp', data_set, pop_size=50, max_gen=50, run=True)
     # solve.parse_tsp_file
     # solve.print_this('dict', solve.city_coords)
     # pop_sizes = [5, 10, 15, 20, 25]
