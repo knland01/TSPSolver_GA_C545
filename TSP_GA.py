@@ -84,7 +84,7 @@ class TSPSolver_GA:
 
         if assist:
             self.parse_tsp_file() # FUTURE: Add end-to-end performance measure?
-            self.run_algorithm()
+            # self.run_algorithm()
 
 
     """ PARSE_TSP_FILE:
