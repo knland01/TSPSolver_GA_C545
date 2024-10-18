@@ -60,7 +60,7 @@ if st.button("Run GA"):
         tour_x = [solver.city_coords[city][0] for city in best_path]
         tour_y = [solver.city_coords[city][1] for city in best_path]
         ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
-        ax.set_title(f"Best Path {best_path:.2} - Generation {generation + 1}")
+        ax.set_title(f"Best Path {best_path:.2f} - Generation {generation + 1}")
         ax.legend()
 
         dynamic_plot_placeholder.pyplot(fig)
