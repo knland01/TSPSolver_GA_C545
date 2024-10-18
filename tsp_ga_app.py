@@ -100,7 +100,7 @@ if st.button("Run GA"):
     st.pyplot(fig2)
 
     # EXPLICITLY CLOSE THE FIGURES TO FREE MEMORY:
-    time.sleep(60)
+    time.sleep(3)
     plt.close(fig1)
     plt.close(fig2)
 
