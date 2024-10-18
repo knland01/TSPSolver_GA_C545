@@ -48,9 +48,11 @@ if st.button("Run GA"):
 
     # RUN THROUGH EACH GENERATION
     for generation in range(solver.max_generations):
-        solver.genetic_algorithm()  # Run a single generation
-        best_path = min(solver.current_population, key=solver.calc_total_distance)
-        best_distance = solver.calc_total_distance(best_path)
+        solution_dict = solver.genetic_algorithm()  # Run a single generation
+        best_path = solution_dict['SOLUTION']
+        best_distance = solution_dict['TOTAL DISTANCE']
+        # best_path = min(solver.current_population, key=solver.calc_total_distance)
+        # best_distance = solver.calc_total_distance(best_path)
         fitness_progress.append(best_distance)
         shortest_paths.append(best_path)     
 
@@ -76,6 +78,8 @@ if st.button("Run GA"):
     ax.set_title("Evolution of Best Distance across Generations")
     if solver.max_generations <= 50:
         tick_interval = 2
+    if solver.max_generations >= 100:
+        tick_interval = 50
     else:
         tick_interval = 20
     ax.set_xticks(range(0, len(fitness_progress), tick_interval))
