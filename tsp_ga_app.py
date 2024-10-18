@@ -18,7 +18,7 @@ m_prob_high = st.slider("FIRST HALF: Mutation Probability", 0.01, 0.1, 0.05)
 st.write(f"SECOND HALF: Mutation Probability = {m_prob_high * 0.20:.2f}")
 solution_type = st.selectbox("Solution Type", ["dict", "list"])
 algorithm = st.selectbox("Algorithm", ["GENETIC ALGORITHM", "BRUTE FORCE", "GREEDY: CLOSEST EDGE", "DEPTH FIRST SEARCH", "BREADTH FIRST SEARCH"])
-assist = False
+assist = True
 
 
 # TSPSolver_GA INSTANCE: 
@@ -51,9 +51,7 @@ if st.button("Run GA"):
         solver.genetic_algorithm()  # Run a single generation
         best_path = min(solver.current_population, key=solver.calc_total_distance)
         best_distance = solver.calc_total_distance(best_path)
-        best_fitness = solver.calc_fitness_score(best_path)
-        fitness_progress.append(best_fitness)
-        # fitness_progress.append(best_distance)
+        fitness_progress.append(best_distance)
         shortest_paths.append(best_path)     
 
         
