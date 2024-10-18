@@ -386,15 +386,15 @@ class TSPSolver_GA:
         # while self.generation_count != self.max_generations: 
             # next_generation = []
         # num_pairs = math.ceil(self.population_size / 2)                 
-    # for _ in range(num_pairs):
-        parent1, parent2 = self.rand_parent_select()
-        child1, child2 = self.reproduce(parent1, parent2)
+        for _ in range(self.population_size):
+            parent1, parent2 = self.rand_parent_select()
+            child1, child2 = self.reproduce(parent1, parent2)
             # print(child1, child2)
-        # best_child = max([child1, child2], key=self.calc_fitness_score)
+            # best_child = max([child1, child2], key=self.calc_fitness_score)
             # print("BEST CHILD", best_child)
-        children.append(child1)
-        children.append(child2)
-        self.current_population = self.pick_elite_next_gen(children)
+            children.append(child1)
+            children.append(child2)
+        self.pick_elite_next_gen(children)
         # ANIMATION - separate this out?
         # print("NXT GEN LEN: ", len(next_generation))
         # print("CURR POP LEN: ", len(self.current_population))
@@ -425,8 +425,8 @@ class TSPSolver_GA:
         # print("CHILDS LEN:", len(children))
         # print(len(combined_population))
         combined_population.sort(key=self.calc_fitness_score, reverse=True)
-        next_gen = combined_population[:self.population_size]
-        return next_gen
+        self.current_population = combined_population[:self.population_size]
+        return self.current_population
   
     """ RUN_ALGORITHM:
         * Instance method that runs all components of the class that make up 
