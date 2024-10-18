@@ -41,7 +41,7 @@ class TSPSolver_GA:
         * Requires .tsp file and has an option to provide a particular starting 
           city from which to find the shortest path. Optional parameter, start_city. If a start_city is not supplied by the user, a default value is used. This default value represents the first coordinate in the provided .tsp file. A goal_city can also be provided as the end goal or a default value has been supplied. Lastly, an optional assist parameter is available, defaulting to True. When this has not been changed to False, the constructor automatically calls run_BFS_algorithm and run_DFS_algorithms which allows for a streamlined and intuitive use of the algorithm, especially when the class is instantiated directly in a driver file.
     """
-    def __init__(self, tsp_file, data_set, pop_size=200, max_gen=200, c_prob_high=0.95, m_prob_high=0.05, solution_type='dict', algorithm='GENETIC ALGORITHM', assist=True):
+    def __init__(self, tsp_file, data_set, pop_size=200, max_gen=200, c_prob_high=0.95, m_prob_high=0.05, solution_type='dict', algorithm='GENETIC ALGORITHM', assist=True, run=False):
 
         # BASIC TSP FILE VARIABLES:
         self.tsp_file = tsp_file
@@ -49,7 +49,7 @@ class TSPSolver_GA:
         # self.start_city = start_city
 
         # GENETIC ALGORITHM VARIABLES:
-        self.current_population = [] # dict of chromosomes (paths) + length?
+        self.current_population = self.generate_random_pop # dict of chromosomes (paths) + length?
         # Let's try list first as is typical...
         self.next_generation = [] # list of children to replace current population (if fitness score is better otherwise just add them to the population and kill off the worst ones equivalent to the num children added?)
         self.population_size = pop_size # Num potential solution paths in a population
@@ -84,7 +84,8 @@ class TSPSolver_GA:
 
         if assist:
             self.parse_tsp_file() # FUTURE: Add end-to-end performance measure?
-            # self.run_algorithm()
+        if run:
+            self.run_algorithm()
 
 
     """ PARSE_TSP_FILE:
@@ -205,6 +206,7 @@ class TSPSolver_GA:
 
         # NORMALIZE WITH LIST COMPREHENSION:
         probabilities = [score / total_scores for score in scores_list]
+        # print(sum(probabilities))
         return probabilities
 
 
@@ -227,6 +229,8 @@ class TSPSolver_GA:
         # print(curr_pop_index)
         # SELECT PARENTS          
         p1_index, p2_index = np.random.choice(len(self.current_population), 2, replace=False,  p=f_probabilities)
+        # print("P1", p1_index, f"{(f_probabilities[p1_index] * 100):.3f}")
+        # print("P2", p2_index, f"{(f_probabilities[p2_index] * 100):.3f}")
         # print("P1 INDEX", p1_index)
         # print("POP SIZE", len(self.current_population))
         # print("LENGTH PROBS", len(f_probabilities))
@@ -375,30 +379,31 @@ class TSPSolver_GA:
         next_generation = []
         # final_fit_score = 0
         # final_path = []
-        self.current_population = self.generate_random_pop()
+        
         # print("CURR_POP LENGTH", len(self.current_population))
         # pop_size = len(self.current_population)
         
-        while self.generation_count != self.max_generations: 
+        # while self.generation_count != self.max_generations: 
             # next_generation = []
-            num_pairs = math.ceil(self.population_size / 2)                 
-            for _ in range(num_pairs):
-                parent1, parent2 = self.rand_parent_select()
-                child1, child2 = self.reproduce(parent1, parent2)
-                # print(child1, child2)
-                best_child = max([child1, child2], key=self.calc_fitness_score)
-                # print("BEST CHILD", best_child)
-                children.append(best_child)
-            next_generation = self.pick_elite_next_gen(children)
-            self.current_population = next_generation # ANIMATION - separate this out?
-            # print("NXT GEN LEN: ", len(next_generation))
-            # print("CURR POP LEN: ", len(self.current_population))
-            self.generation_count += 1
-            next_generation = []
-            children = []
+        # num_pairs = math.ceil(self.population_size / 2)                 
+    # for _ in range(num_pairs):
+        parent1, parent2 = self.rand_parent_select()
+        child1, child2 = self.reproduce(parent1, parent2)
+            # print(child1, child2)
+        # best_child = max([child1, child2], key=self.calc_fitness_score)
+            # print("BEST CHILD", best_child)
+        children.append(child1)
+        children.append(child2)
+        self.current_population = self.pick_elite_next_gen(children)
+        # ANIMATION - separate this out?
+        # print("NXT GEN LEN: ", len(next_generation))
+        # print("CURR POP LEN: ", len(self.current_population))
+        # self.generation_count += 1
+        # next_generation = []
+        # children = []
         
-        solution_path1 = min(self.current_population, key=self.calc_total_distance)
-        solution_path2 = max(self.current_population, key=self.calc_fitness_score)
+        best_path = min(self.current_population, key=self.calc_total_distance)
+        # solution_path2 = max(self.current_population, key=self.calc_fitness_score)
         # for path in self.current_population:
         #     f_score = self.calc_fitness_score(path)
         #     if f_score > final_fit_score:
@@ -407,19 +412,11 @@ class TSPSolver_GA:
 
         # solution_path = self.current_population[p_index]
 
-        solution_distance = self.calc_total_distance(solution_path1) 
+        best_distance = self.calc_total_distance(best_path) 
 
-        solution = {
-            "DATA SET" : self.data_set,
-            "SOLUTION": solution_path2,
-            "TOTAL DISTANCE": solution_distance,
-            "POPULATION SIZE": self.population_size,
-            "MAX GENERATIONS": self.max_generations,
-            "CROSSOVER RATES HIGH": self.cross_prob_HIGH,
-            "MUTATION RATES HIGH": self.mutate_prob_HIGH,
-            }
 
-        return solution
+
+        return best_distance, best_path
 
     def pick_elite_next_gen(self, children):
         # print("PICK ELITE")
@@ -438,10 +435,26 @@ class TSPSolver_GA:
     """
     
     def run_algorithm(self):
+        fitness_progress = []
+        shortest_paths = []
+
         start_time = time.perf_counter()
-        solution = self.genetic_algorithm()
+        for generation in range(self.max_generations):
+            best_distance, best_path = self.genetic_algorithm()
+            fitness_progress.append(best_distance)
+            shortest_paths.append(best_path)
         end_time = time.perf_counter()
         elapsed_time = end_time - start_time
+        
+        solution = {
+            "DATA SET" : self.data_set,
+            "SOLUTION PATH": best_path,
+            "SOLUTION DISTANCE": best_distance,
+            "POPULATION SIZE": self.population_size,
+            "MAX GENERATIONS": self.max_generations,
+            "CROSSOVER RATES HIGH": self.cross_prob_HIGH,
+            "MUTATION RATES HIGH": self.mutate_prob_HIGH,
+            }
         # self.plot_cities()
         # self.plot_tour(solution['SOLUTION'])
         # results[data_set] = {
@@ -546,7 +559,7 @@ if __name__ == "__main__":
     ]
 
     for data_set in data_sets:
-        solve = TSPSolver_GA('Random100.tsp', data_set, pop_size=10, max_gen=10)
+        solve = TSPSolver_GA('Random100.tsp', data_set, pop_size=10, max_gen=10, run=True)
     # solve.parse_tsp_file
     # solve.print_this('dict', solve.city_coords)
     # pop_sizes = [5, 10, 15, 20, 25]

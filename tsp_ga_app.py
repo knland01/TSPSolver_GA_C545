@@ -11,7 +11,7 @@ st.write("This app demonstrates the evolution of a solution to the Traveling Sal
 tsp_file = st.text_input("Enter TSP file path:", "Random100.tsp")
 data_set = st.selectbox("Select Data Set", ["D1_single_swap", "D2_single_invert", "D3_order_swap", "D4_order_invert"])
 pop_size = st.slider("Population Size", 5, 500, 5)
-max_gen = st.slider("Maximum Generations", 5, 500, 5)
+max_gen = st.slider("Maximum Generations", 5, 1000, 5)
 c_prob_high = st.slider("FIRST HALF: Crossover Probability", 0.5, 1.0, 0.95)
 st.write(f"SECOND HALF: Crossover Probability = {c_prob_high * 0.75:.2f}")
 m_prob_high = st.slider("FIRST HALF: Mutation Probability", 0.01, 0.1, 0.05)
@@ -49,11 +49,11 @@ if st.button("Run GA"):
 
     # RUN THROUGH EACH GENERATION
     for generation in range(solver.max_generations):
-        solution_dict = solver.genetic_algorithm()  # Run a single generation
-        best_path = solution_dict['SOLUTION']
-        best_distance = solution_dict['TOTAL DISTANCE']
-        # best_path = min(solver.current_population, key=solver.calc_total_distance)
-        # best_distance = solver.calc_total_distance(best_path)
+        solver.genetic_algorithm()  # Run a single generation
+        # best_path = solution_dict['SOLUTION']
+        # best_distance = solution_dict['TOTAL DISTANCE']
+        best_path = min(solver.current_population, key=solver.calc_total_distance)
+        best_distance = solver.calc_total_distance(best_path)
         fitness_progress.append(best_distance)
         shortest_paths.append(best_path)     
 
