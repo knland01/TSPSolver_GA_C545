@@ -65,6 +65,15 @@ if st.button("Run GA"):
         tour_y = [solver.city_coords[city][1] for city in best_path]
         ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
         ax.set_title(f"GA Solution Path ({best_distance:.2f}) - Gen ({generation + 1})")
+        if data_set == "D1_single_swap":
+            xlabel = "Single Point Crossover | Swap Mutation"
+        elif data_set == "D2_single_invert":
+            xlabel = "Single Point Crossover | Inversion Mutation"
+        elif data_set == "D3_order_swap":
+            xlabel = "Order Crossover | Swap Mutation"
+        elif data_set == "D4_order_invert":
+            xlabel = "Order Crossover | Inversion Mutation"
+        ax.set_xlabel(xlabel)
         ax.legend()
 
         dynamic_plot_placeholder.pyplot(fig)
