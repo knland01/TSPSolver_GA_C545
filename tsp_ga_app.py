@@ -42,6 +42,7 @@ solver = TSPSolver_GA(
 
 # Run the algorithm and visualize progress
 if st.button("Run GA"):
+    solver.generate_random_pop()
     fitness_progress = []
     shortest_paths = []
     generation = 0
