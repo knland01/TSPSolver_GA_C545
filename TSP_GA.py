@@ -3,21 +3,9 @@ import random
 import time
 import queue
 import numpy as np
-# import matplotlib.pyplot as plt
-# import tkinter as tk
-# from tkinter import ttk
-# from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
-
-
-""" TERMS AND THINGS TO KNOW:
-    * individual = path
-    * population = paths
-    * child = new_path
-    * chromosome = path (city_order)
-    * gene = a city (in a path)
-    * path = all cities once + start_city = end_city
+""" THINGS TO KNOW:
     * Possible solutions = 100!
     * GA SMALL POP = [50 - 100]
     * GA LARGE POP = [200 - 500]
@@ -33,15 +21,14 @@ import numpy as np
     * MAX GENERATIONS for TSP: [200 - 1000]
 """
 
-
     
 class TSPSolver_GA:
 
     """ CLASS CONSTRUCTOR: 
-        * Requires .tsp file and has an option to provide a particular starting 
-          city from which to find the shortest path. Optional parameter, start_city. If a start_city is not supplied by the user, a default value is used. This default value represents the first coordinate in the provided .tsp file. A goal_city can also be provided as the end goal or a default value has been supplied. Lastly, an optional assist parameter is available, defaulting to True. When this has not been changed to False, the constructor automatically calls run_BFS_algorithm and run_DFS_algorithms which allows for a streamlined and intuitive use of the algorithm, especially when the class is instantiated directly in a driver file.
+        * Requires .tsp file and a data set to use. The data set represents which crossover and   
+          mutation techniques to use during reproduction. has an option to provide a particular starting. Additional parameters are provided with default values that can also be specified to fine tune the genetic algorithm including: population size, maximum number of generations, the first half (higher) probability of crossover,and the first half (higher) probability of mutation. The solution type and algorithm parameters are for printing results. The assist parameter set to true will automatically parse the tsp file during class construction and when the run parameter is set to true it will auto-run the algorithm during class construction.
     """
-    def __init__(self, tsp_file, data_set, pop_size=200, max_gen=200, c_prob_high=0.95, m_prob_high=0.05, solution_type='dict', algorithm='GENETIC ALGORITHM', assist=True, run=False):
+    def __init__(self, tsp_file, data_set, pop_size=30, max_gen=30, c_prob_high=0.95, m_prob_high=0.05, solution_type='dict', algorithm='GENETIC ALGORITHM', assist=True, run=False):
 
         # BASIC TSP FILE VARIABLES:
         self.tsp_file = tsp_file
@@ -125,7 +112,7 @@ class TSPSolver_GA:
     
     
     """ CALC_TOTAL_DISTANCE:
-    This method takes a path as an argument and calculates the total distance of the entire path using the euclidean distance formula. A for loop using the range and length functions iterates through each ith element in the path provided. The coordinates of each consecutive pair of cities in the path are obtained from the city coordinates dictionary built during data parsing. The euclidean distance is calculated between the two consecutive cities and added to the local total_distance variable. Once the last 2 cities of the path have been reached, the method returns the total distance of the path.
+    This method takes a path as an argument and calculates the total distance of the entire path using the euclidean distance formula. A for loop using the range and length functions iterates through each ith element in the path provided. The coordinates of each consecutive pair of cities in the path are obtained from the city coordinates dictionary built during data parsing. The euclidean distance is calculated between the two consecutive cities and added to the local total_distance variable. Lastly, the distance between the last city and the first city is added to complete the distance of the tour as a circuit. Once the last 2 cities of the path have been reached, the method returns the total distance of the path.
     """
     def calc_total_distance(self, path):
         total_distance = 0
@@ -134,6 +121,10 @@ class TSPSolver_GA:
             city2_coords = self.city_coords[path[i + 1]]
             distance = self._euclidean_distance(city1_coords, city2_coords)
             total_distance += distance
+        # ADD LAST CITY BACK TO FIRST CITY DISTANCE TO COMPLETE CIRCUIT:
+        first_city = self.city_coords[path[0]]
+        last_city = self.city_coords[path[-1]]
+        total_distance += self._euclidean_distance(last_city, first_city)
         return total_distance
     
 
@@ -147,15 +138,12 @@ class TSPSolver_GA:
         city_indices = list(self.city_coords.keys())
         for _ in range(self.population_size): # _ = "throwaway var", only used to maintain syntax
             route = random.sample(city_indices, len(city_indices)) # POP=city_indices, k=len 
-            circuit = route + [route[0]] # Outer brackets: list of 1 element for concatenation
-            self.current_population.append(circuit)          
+            self.current_population.append(route) # Last city is implied in TSP GA          
         return self.current_population # variable assignment convenience if needed
 
     
     """ FITNESS_FUNCTION:
-        Computes the fitness score of a single individual (chromosome) to evaluate its quality as a solution.
-        TSP = the shorter the path the higher the fitness score
-
+        Computes the fitness score of a single individual (chromosome) to evaluate its quality as a solution. In the case of TSP, the fitness score is the shortest distance. To create a fitness score that favors higher values, the inverse of the distance is created and then scaled for readability. 
     """
     def calc_fitness_score(self, path):
         path_length = self.calc_total_distance(path)
@@ -164,6 +152,10 @@ class TSPSolver_GA:
         # fitness_score3 = 1000 * (1/ (path_length ** 2)) # Exaggerate diff btwn high / low scores.
         return fitness_score1
 
+    
+    """_CONVERT_TO_PROBABILITIES:
+        Converts the fitness scores into probabilities so that they can be used to weight individuals within the population for random but biased parent selection to foster the next generation.
+    """
     def _convert_to_probabilities(self, scores_list):
         total_scores = sum(scores_list)
         probabilities = []
@@ -172,10 +164,10 @@ class TSPSolver_GA:
         return probabilities
 
 
-    """ RANDOM_SELECTION:
-        Applies the fitness function, stores individuals and scores locally in a data structure such as a list of tuples, computes selection probabilities, and randomly selects an individual with a bias towards higher fitness scores. 
-    
+    """ RAND_PARENT_SELECTION:
+        Applies the fitness function, stores individuals and scores locally, calls the _convert_probabilities helper function to convert fitness scores to probabilities, and randomly selects an individual with a bias towards higher fitness scores, using the numpy module. 
     """
+
     def rand_parent_select(self):
         fitness_scores = []
         f_probabilities = []
@@ -189,12 +181,9 @@ class TSPSolver_GA:
         parent2 = self.current_population[p2_index] 
         return parent1, parent2
 
-
-    
-
     
     """ SINGLE_PT_CROSSOVER:
-    parent = ordered list of cities
+        Crossover technique used in reproduction between two parents and produces two children. A crossover point is randomly selected and then the children are produced. Each child is given the genes (cities) from one parent up to but excluding the crossover point from that parent's chromosome (path) and the genes from the other parent after, but including, the crossover point. The two children (new paths) are returned from the function. 
     """
     def single_pt_crossover(self, parent1, parent2):
         p1 = parent1
@@ -211,7 +200,7 @@ class TSPSolver_GA:
         return child1, child2
     
     """ ORDER_CROSSOVER:
-    
+        Crossover technique used in reproduction between two parents and produces two children. Two children are created with the same number of gene slots as the parents, however the genes at this point are assigned the value None. Two crossoverpoints are randomly selected for the earlier and later crossover points. The genes from the parents are filled into these segments (as determined by the crossover points) in order. The first parent fills in the genes btwn the crossover points and the second parent fills in the genes on the outside of the crossover points. All genes are checked for uniqueness against the genes already placed. Only unique genes are placed.
     """   
     def order_crossover(self, parent1, parent2):
         p_size = len(parent1)
@@ -223,8 +212,8 @@ class TSPSolver_GA:
         child2 = [gene for gene in parent1 if gene not in parent2[cp1:cp2]] + parent2[cp1:cp2] + [gene for gene in parent2 if gene not in child2[:cp2]]
         return child1, child2
     
-    """ MUTATE1:
-        Introduces random mutation to maintain diversity.
+    """ SWAP MUTATION:
+        Mutation technique applied to children produced by reproduction. If mutation occurs it is only applied to one of the two children produced by two parents. The child chosen is random. Two genes are chosen at random and swapped.
     
     """
     def swap_mutation(self, child1, child2):
@@ -238,7 +227,10 @@ class TSPSolver_GA:
         else:
             return child1, mutant     
 
-            
+    """ INVERSION_MUTATION:
+        Mutation technique applied to children produced by reproduction. If mutation occurs it is only applied to one of the two children produced by two parents. The child chosen is random. Two points are chosen at random and the genes between these points are inverted.
+    
+    """ 
     def inversion_mutation(self, child1, child2):
         chosen = random.choice([0, 1])        
         mutant = child1[:] if chosen == 0 else child2[:] # Syntax ensures deep copy for mutant
@@ -250,11 +242,9 @@ class TSPSolver_GA:
         else:
             return child1, mutant
    
-    
-
 
     """ REPRODUCE:
-        Combines two parents to produce a child through crossover.
+        Combines two parents to produce a child based on the data set and probabilities issued during class construction / instantiation. The crossover and mutation functions are called accordingly. Higher probabilities for both crossover and mutation are applied to the first half of the max generations and lower probabilities are applied for the second half of the generation cycles.
 
     """
     def reproduce(self, parent1, parent2):
@@ -276,7 +266,7 @@ class TSPSolver_GA:
 
 
     """ GENETIC_ALGORITHM:
-        Manages the entire process of selection, reproduction, mutation, and population update until the termination criteria are met.
+        Manages the random parent selection, reproduction, the list of children for the next generation, the elite selection of individuals for the next generation, and finds the best path and calculates its distance of the current population.
     
     """
     def genetic_algorithm(self):
@@ -291,6 +281,9 @@ class TSPSolver_GA:
         best_distance = self.calc_total_distance(best_path) 
         return best_distance, best_path
 
+    """ PICK_ELITE_NEXT_GEN:
+        Combines the newly produced children and the parent population and picks the number of individuals equal to the population size with the highest fitness scores as the elite members of the next generation. (FUTURE: This should be a parameter that can be toggled, adding tournament selection or other as another option to explore)
+    """
     def pick_elite_next_gen(self, children):
         combined_population = []
         combined_population = self.current_population + children
@@ -382,7 +375,13 @@ if __name__ == "__main__":
 
 
 
-    # CODE GRAVEYARD
+# CODE GRAVEYARD
+    # circuit = route + [route[0]] # Outer brackets: list of 1 element for concatenation
+
+    # import matplotlib.pyplot as plt
+# import tkinter as tk
+# from tkinter import ttk
+# from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
     # def plot_cities(self):
     #     x_coords = [coord[0] for coord in self.city_coords.values()]

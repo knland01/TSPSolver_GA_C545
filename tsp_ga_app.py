@@ -5,6 +5,7 @@ import time
 
 # TITLE + INSTRUCTIONS:
 st.title("Solving TSP w/ Genetic Algorithm")
+st.write("CREATED BY: Karis Land\n")
 st.write("This app demonstrates the evolution of a solution to the Traveling Salesman Problem using a Genetic Algorithm.")
 
 # USER DEFINED GA PARAMS:
@@ -13,16 +14,18 @@ data_set = st.selectbox("Select Data Set", ["D1_single_swap", "D2_single_invert"
 pop_size = st.slider("Population Size", 5, 500, 5)
 max_gen = st.slider("Maximum Generations", 5, 1000, 5)
 c_prob_high = st.slider("FIRST HALF: Crossover Probability", 0.5, 1.0, 0.95)
+m_prob_high = st.slider("FIRST HALF: Mutation Probability", 0.01, 0.5, 0.05)
 st.write(f"SECOND HALF: Crossover Probability = {c_prob_high * 0.85:.2f}")
-m_prob_high = st.slider("FIRST HALF: Mutation Probability", 0.01, 0.2, 0.05)
 st.write(f"SECOND HALF: Mutation Probability = {m_prob_high * 0.75:.2f}")
 # solution_type = st.selectbox("Solution Type", ["dict", "list"])
-algorithm = st.selectbox("Algorithm", ["GENETIC ALGORITHM", "BRUTE FORCE", "GREEDY: CLOSEST EDGE", "DEPTH FIRST SEARCH", "BREADTH FIRST SEARCH"])
+algorithm = st.selectbox("Algorithm", ["GENETIC ALGORITHM"])
+# algorithm = st.selectbox("Algorithm", ["GENETIC ALGORITHM", "BRUTE FORCE", "GREEDY: CLOSEST EDGE", "DEPTH FIRST SEARCH", "BREADTH FIRST SEARCH"])
 assist = True
 
 # DYNAMIC COMPONENTS:
 animation_speed = st.slider("Animation Speed (seconds per generation)", 0.01, 3.0, 0.5)
 dynamic_plot_placeholder = st.empty()
+time_placeholder = st.empty()
 
 # TSPSolver_GA INSTANCE: 
 solver = TSPSolver_GA(
@@ -37,32 +40,34 @@ solver = TSPSolver_GA(
 )
 
 
-# max_gens = solver.max_generations
-
 # Run the algorithm and visualize progress
 if st.button("Run GA"):
     solver.generate_random_pop()
     fitness_progress = []
     shortest_paths = []
     generation = 0
+    cumulative_time = 0
 
 
     # RUN THROUGH EACH GENERATION
     for generation in range(solver.max_generations):
+        start_time = time.perf_counter()
         solver.genetic_algorithm()  # Run a single generation
-        # best_path = solution_dict['SOLUTION']
-        # best_distance = solution_dict['TOTAL DISTANCE']
         best_path = min(solver.current_population, key=solver.calc_total_distance)
         best_distance = solver.calc_total_distance(best_path)
         fitness_progress.append(best_distance)
         shortest_paths.append(best_path)     
-
+        end_time = time.perf_counter()
+        elapsed_time = end_time - start_time
+        cumulative_time += elapsed_time
         
         # PLOT WITH MATPLOTLIB
         fig, ax = plt.subplots() 
         tour_x = [solver.city_coords[city][0] for city in best_path]
         tour_y = [solver.city_coords[city][1] for city in best_path]
         ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
+        # COMPLETE THE CIRCUIT:
+        ax.plot([tour_x[-1], tour_x[0]], [tour_y[-1], tour_y[0]], '-r', marker='o')
         ax.set_title(f"GA Solution Path ({best_distance:.2f}) - Gen ({generation + 1})")
         if data_set == "D1_single_swap":
             xlabel = "Single Point Crossover | Swap Mutation"
@@ -76,10 +81,11 @@ if st.button("Run GA"):
         ax.legend()
 
         dynamic_plot_placeholder.pyplot(fig)
+        time_placeholder.write(f"**ELAPSED TIME:** {cumulative_time: .2f} seconds || {cumulative_time / 60: .2f} minutes\n")
         time.sleep(animation_speed)
         plt.close(fig)
 
-    
+
     # EVOLUTION OF SOLUTIONS OVER GENERATIONS:
     fig1, ax = plt.subplots()
     ax.plot(range(len(fitness_progress)), fitness_progress, label="Best Distance")
@@ -94,9 +100,6 @@ if st.button("Run GA"):
         tick_interval = 20
     ax.set_xticks(range(0, len(fitness_progress), tick_interval))
     st.pyplot(fig1)
-
-
-
 
     # FINAL SOLUTION
     st.write("### Final Solution:")
@@ -121,6 +124,40 @@ if st.button("Run GA"):
 
 
 # CODE GRAVEYARD:
+
+# x_coords = [city[0] for city in solver.city_coords.values()]
+# y_coords = [city[1] for city in solver.city_coords.values()]
+
+# fig, ax = plt.subplots() 
+# ax.plot(x_coords, y_coords, 'r', marker='o', label="Cities")
+
+# for city_index, (x, y) in solver.city_coords.items():
+#     plt.text(x + 1.5, y + 1.5, str(city_index), fontsize=10, ha='right', va='bottom')
+
+# ax.legend(loc='upper left', bbox_to_anchor=(1,1))
+# ax.set_title('TSP Cities')
+# ax.set_xlabel('X Coordinate')
+# ax.set_ylabel('Y Coordinate')
+# st.pyplot(fig)
+# plt.close(fig)
+
+# SHOW SCATTER PLOT OF ORIGINAL TSP FILE:
+
+# x_coords = [city[0] for city in solver.city_coords.values()]
+# y_coords = [city[1] for city in solver.city_coords.values()]
+
+# fig, ax = plt.subplots(figsize=(12,8), dpi=100) 
+# ax.scatter(x_coords, y_coords, color='blue', label='Cities')
+
+# for city_index, (x, y) in solver.city_coords.items():
+#     plt.text(x + 1.5, y + 1.5, str(city_index), fontsize=10, ha='right', va='bottom')
+
+# ax.legend(loc='upper left', bbox_to_anchor=(1,1))
+# ax.set_title('TSP Cities')
+# ax.set_xlabel('X Coordinate')
+# ax.set_ylabel('Y Coordinate')
+# st.pyplot(fig)
+# plt.close(fig)
 
 # if 'generation_slider' not in st.session_state:
 #     st.session_state['generation_slider'] = 1
