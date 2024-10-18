@@ -20,6 +20,9 @@ solution_type = st.selectbox("Solution Type", ["dict", "list"])
 algorithm = st.selectbox("Algorithm", ["GENETIC ALGORITHM", "BRUTE FORCE", "GREEDY: CLOSEST EDGE", "DEPTH FIRST SEARCH", "BREADTH FIRST SEARCH"])
 assist = True
 
+# DYNAMIC COMPONENTS:
+animation_speed = st.slider("Animation Speed (seconds per generation)", 0.01, 3.0, 0.5)
+dynamic_plot_placeholder = st.empty()
 
 # TSPSolver_GA INSTANCE: 
 solver = TSPSolver_GA(
@@ -34,9 +37,7 @@ solver = TSPSolver_GA(
     assist=assist
 )
 
-# DYNAMIC COMPONENTS:
-animation_speed = st.slider("Animation Speed (seconds per generation)", 0.0001, 3.0, 0.5)
-dynamic_plot_placeholder = st.empty()
+
 # max_gens = solver.max_generations
 
 # Run the algorithm and visualize progress
@@ -62,7 +63,7 @@ if st.button("Run GA"):
         tour_x = [solver.city_coords[city][0] for city in best_path]
         tour_y = [solver.city_coords[city][1] for city in best_path]
         ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
-        ax.set_title(f"Best Path ({best_distance:.2f}) - Generation {generation + 1}")
+        ax.set_title(f"GA Solution Path ({best_distance:.2f}) - Gen ({generation + 1})")
         ax.legend()
 
         dynamic_plot_placeholder.pyplot(fig)
