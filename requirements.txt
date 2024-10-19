@@ -4,4 +4,4 @@ pandas
 matplotlib
 
 
-USE TERMINAL COMMAND: streamlit run tsp_ga_app.py
+USE TERMINAL COMMAND: streamlit run TSP_GA_APP.py

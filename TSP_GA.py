@@ -3,10 +3,12 @@ import random
 import time
 import queue
 import numpy as np
+# import pandas as pd
+# import matplotlib.pyplot as plt
 
 
 """ THINGS TO KNOW:
-    * Possible solutions = 100!
+    * Possible solutions = 99!
     * GA SMALL POP = [50 - 100]
     * GA LARGE POP = [200 - 500]
     * MUTATION in nature: [0.01 - 0.1%]
@@ -26,13 +28,14 @@ class TSPSolver_GA:
 
     """ CLASS CONSTRUCTOR: 
         * Requires .tsp file and a data set to use. The data set represents which crossover and   
-          mutation techniques to use during reproduction. has an option to provide a particular starting. Additional parameters are provided with default values that can also be specified to fine tune the genetic algorithm including: population size, maximum number of generations, the first half (higher) probability of crossover,and the first half (higher) probability of mutation. The solution type and algorithm parameters are for printing results. The assist parameter set to true will automatically parse the tsp file during class construction and when the run parameter is set to true it will auto-run the algorithm during class construction.
+          mutation techniques to use during reproduction. has an option to provide a particular starting. Additional parameters are provided with default values that can also be specified to fine tune the genetic algorithm including: population size, maximum number of generations, the first half (higher) probability of crossover,and the first half (higher) probability of mutation. The solution type and algorithm parameters are for printing results. The parse parameter set to true will automatically parse the tsp file during class construction and when the run parameter is set to true it will auto-run the algorithm during class construction.
     """
-    def __init__(self, tsp_file, data_set, pop_size=30, max_gen=30, c_prob_high=0.95, m_prob_high=0.05, solution_type='dict', algorithm='GENETIC ALGORITHM', assist=True, run=False):
+    def __init__(self, tsp_file, data_set, start_city=1, pop_size=30, max_gen=30, c_prob_high=0.95, m_prob_high=0.05, solution_type='dict', algorithm='GENETIC ALGORITHM', parse=True, run=False, print_results=True):
 
         # BASIC TSP FILE VARIABLES:
         self.tsp_file = tsp_file
         self.city_coords = {} # dict of city index + city coordinates
+        self.start_city = start_city
 
         # GENETIC ALGORITHM VARIABLES:
         self.current_population = []
@@ -46,10 +49,11 @@ class TSPSolver_GA:
         self.cross_prob_HIGH = c_prob_high 
         self.cross_prob_LOW = c_prob_high * 0.85
         
-
         # MUTATION
         self.mutate_prob_HIGH = m_prob_high
         self.mutate_prob_LOW = m_prob_high * 0.75
+
+
 
         self.data_sets = {
             'D1_single_swap': (self.single_pt_crossover, self.swap_mutation), 
@@ -58,15 +62,21 @@ class TSPSolver_GA:
             'D4_order_invert': (self.order_crossover, self.inversion_mutation) 
         }
 
+        # FOR PERFORMANCE STATISTICS:
+        self.runtime = 0
+        self.best_distance = 0
+
         # USED FOR PRINTING RESULTS:
         self.solution_type = solution_type 
         self.algorithm = algorithm # FUTURE: Used to toggle algorithms?
         
-
-        if assist:
+        self.print_results = print_results
+        if parse:
             self.parse_tsp_file() # FUTURE: Add end-to-end performance measure?
         if run:
             self.run_algorithm()
+        
+        
 
 
     """ PARSE_TSP_FILE:
@@ -112,7 +122,7 @@ class TSPSolver_GA:
     
     
     """ CALC_TOTAL_DISTANCE:
-    This method takes a path as an argument and calculates the total distance of the entire path using the euclidean distance formula. A for loop using the range and length functions iterates through each ith element in the path provided. The coordinates of each consecutive pair of cities in the path are obtained from the city coordinates dictionary built during data parsing. The euclidean distance is calculated between the two consecutive cities and added to the local total_distance variable. Lastly, the distance between the last city and the first city is added to complete the distance of the tour as a circuit. Once the last 2 cities of the path have been reached, the method returns the total distance of the path.
+    This method takes a path as an argument and calculates the total distance of the entire path using the euclidean distance formula. A for loop using the range and length functions iterates through each ith element in the path provided. The coordinates of each consecutive pair of cities in the path are obtained from the city coordinates dictionary built during data parsing. The euclidean distance is calculated between the two consecutive cities and added to the local total_distance variable. Lastly, the distance between the first and last cities in the path permutation to the start city for the tsp problem is added to the total distance of the tour to complete the total distance of the tsp circuit. 
     """
     def calc_total_distance(self, path):
         total_distance = 0
@@ -121,28 +131,33 @@ class TSPSolver_GA:
             city2_coords = self.city_coords[path[i + 1]]
             distance = self._euclidean_distance(city1_coords, city2_coords)
             total_distance += distance
-        # ADD LAST CITY BACK TO FIRST CITY DISTANCE TO COMPLETE CIRCUIT:
-        first_city = self.city_coords[path[0]]
-        last_city = self.city_coords[path[-1]]
-        total_distance += self._euclidean_distance(last_city, first_city)
+        # ADD BEGIN / DISTANCE OF START CITY TO TOTAL DISTANCE:
+        start_city = self.city_coords[self.start_city]
+        first_path_city = self.city_coords[path[0]]
+        last_path_city = self.city_coords[path[-1]]
+        total_distance += self._euclidean_distance(start_city, first_path_city)
+        total_distance += self._euclidean_distance(last_path_city, start_city)
         return total_distance
     
 
     
     """ RANDOM_POP_INITIALIZER: 
-        Generate initial population of paths.
+        Generate initial population of paths randomly and remove the start city. Because it has a fixed location it does not need to be included in the functions that permute the remaining cities in the tour.
         PYDOCS: random.sample() = return k length list of elements chosen from the population sequence. Used for random sampling without replacement.
+        NOTE: In TSP for GA the final city (which is also the start city) is not added here but is implied. Allowing for the reproduction functions to work correctly when generating new parents and children. Instead the calc_total_distance function is modified to include the distance from the last city back to the first city.
     
     """
     def generate_random_pop(self):
         city_indices = list(self.city_coords.keys())
+        # REMOVE START CITY FROM SOLUTION PATHS:
+        city_indices.remove(self.start_city) # fixed so don't include in permutations
         for _ in range(self.population_size): # _ = "throwaway var", only used to maintain syntax
             route = random.sample(city_indices, len(city_indices)) # POP=city_indices, k=len 
             self.current_population.append(route) # Last city is implied in TSP GA          
         return self.current_population # variable assignment convenience if needed
 
     
-    """ FITNESS_FUNCTION:
+    """ CALC_FITNESS_SCORE:
         Computes the fitness score of a single individual (chromosome) to evaluate its quality as a solution. In the case of TSP, the fitness score is the shortest distance. To create a fitness score that favors higher values, the inverse of the distance is created and then scaled for readability. 
     """
     def calc_fitness_score(self, path):
@@ -278,8 +293,18 @@ class TSPSolver_GA:
             children.append(child2)
         self.pick_elite_next_gen(children)
         best_path = min(self.current_population, key=self.calc_total_distance)
+        best_circuit = self.reconstruct_circuit(best_path)
         best_distance = self.calc_total_distance(best_path) 
-        return best_distance, best_path
+        return best_distance, best_circuit
+
+
+    """ RECONSTRUCTION_CIRCUIT:
+        Reunites the a path with its start city. 
+    """
+    def reconstruct_circuit(self, path):
+        tsp_circuit = [self.start_city] + path + [self.start_city]
+        return tsp_circuit
+
 
     """ PICK_ELITE_NEXT_GEN:
         Combines the newly produced children and the parent population and picks the number of individuals equal to the population size with the highest fitness scores as the elite members of the next generation. (FUTURE: This should be a parameter that can be toggled, adding tournament selection or other as another option to explore)
@@ -292,33 +317,33 @@ class TSPSolver_GA:
         return self.current_population
   
     """ RUN_ALGORITHM:
-        * Instance method that runs all components of the class that make up 
-          the complete algorithm in the manner they are intended to work together. 
-        * Additionally, the runtime of the algorithm is calculated.    
+        Instance method that runs all components of the class that make up 
+        the complete algorithm in the manner they are intended to work together. 
+        Additionally, the runtime of the algorithm is calculated.    
     """
     
     def run_algorithm(self):
-        fitness_progress = []
-        shortest_paths = []
         start_time = time.perf_counter()
         self.current_population = self.generate_random_pop()
         for generation in range(self.max_generations):
             best_distance, best_path = self.genetic_algorithm()
-            fitness_progress.append(best_distance)
-            shortest_paths.append(best_path)
+            if self.print_results == False:
+                print("RUNNING GENERATIONS:", generation)
         end_time = time.perf_counter()
         elapsed_time = end_time - start_time
-        solution = {
-            "DATA SET" : self.data_set,
-            "SOLUTION PATH": best_path,
-            "SOLUTION DISTANCE": best_distance,
-            "POPULATION SIZE": self.population_size,
-            "MAX GENERATIONS": self.max_generations,
-            "CROSSOVER RATES HIGH": self.cross_prob_HIGH,
-            "MUTATION RATES HIGH": self.mutate_prob_HIGH,
-            }
-        self._print_results(elapsed_time, solution, self.solution_type, self.algorithm)
-    
+        self.best_distance = round(best_distance, 2)
+        self.runtime = round(elapsed_time, 2) # minutes
+        if self.print_results:
+            solution = {
+                "DATA SET" : self.data_set,
+                "SOLUTION PATH": best_path,
+                "SOLUTION DISTANCE": best_distance,
+                "POPULATION SIZE": self.population_size,
+                "MAX GENERATIONS": self.max_generations,
+                "CROSSOVER RATES HIGH": self.cross_prob_HIGH,
+                "MUTATION RATES HIGH": self.mutate_prob_HIGH,
+                }
+            self._print_results(elapsed_time, solution, self.solution_type, self.algorithm) 
 
 
     """ _PRINT_RESULTS:
@@ -357,20 +382,6 @@ class TSPSolver_GA:
                 object.put(temp_pq.get())
 
 
-
-
-if __name__ == "__main__":
-
-    
-    data_sets = [
-        'D1_single_swap', 
-        'D2_single_invert', 
-        'D3_order_swap', 
-        'D4_order_invert', 
-    ]
-
-    for data_set in data_sets:
-        solve = TSPSolver_GA('Random100.tsp', data_set, pop_size=50, max_gen=50, run=True)
 
 
 

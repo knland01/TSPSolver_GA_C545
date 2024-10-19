@@ -8,6 +8,7 @@ st.title("Solving TSP w/ Genetic Algorithm")
 st.write("CREATED BY: Karis Land\n")
 st.write("This app demonstrates the evolution of a solution to the Traveling Salesman Problem using a Genetic Algorithm.")
 
+
 # USER DEFINED GA PARAMS:
 tsp_file = st.text_input("Enter TSP file path:", "Random100.tsp")
 data_set = st.selectbox("Select Data Set", ["D1_single_swap", "D2_single_invert", "D3_order_swap", "D4_order_invert"])
@@ -20,10 +21,10 @@ st.write(f"SECOND HALF: Mutation Probability = {m_prob_high * 0.75:.2f}")
 # solution_type = st.selectbox("Solution Type", ["dict", "list"])
 algorithm = st.selectbox("Algorithm", ["GENETIC ALGORITHM"])
 # algorithm = st.selectbox("Algorithm", ["GENETIC ALGORITHM", "BRUTE FORCE", "GREEDY: CLOSEST EDGE", "DEPTH FIRST SEARCH", "BREADTH FIRST SEARCH"])
-assist = True
+parse = True
 
 # DYNAMIC COMPONENTS:
-animation_speed = st.slider("Animation Speed (seconds per generation)", 0.01, 3.0, 0.5)
+animation_speed = st.slider("Animation Speed (seconds per generation)", 0.01, 2.0, 0.01)
 dynamic_plot_placeholder = st.empty()
 time_placeholder = st.empty()
 
@@ -31,14 +32,18 @@ time_placeholder = st.empty()
 solver = TSPSolver_GA(
     tsp_file=tsp_file,
     data_set=data_set,
+    start_city=1,
     pop_size=pop_size,
     max_gen=max_gen,
     c_prob_high=c_prob_high,
     m_prob_high=m_prob_high,
     algorithm=algorithm,
-    assist=assist
+    parse=parse
 )
 
+min_city = min(solver.city_coords.keys())
+max_city = max(solver.city_coords.keys())
+solver.start_city = st.slider("Start City", min_city, max_city)
 
 # Run the algorithm and visualize progress
 if st.button("Run GA"):
@@ -49,25 +54,28 @@ if st.button("Run GA"):
     cumulative_time = 0
 
 
-    # RUN THROUGH EACH GENERATION
+    # RUN ALGORITHM FOR EACH GENERATION:
     for generation in range(solver.max_generations):
         start_time = time.perf_counter()
-        solver.genetic_algorithm()  # Run a single generation
-        best_path = min(solver.current_population, key=solver.calc_total_distance)
-        best_distance = solver.calc_total_distance(best_path)
+        best_distance, best_path = solver.genetic_algorithm()  # Run a single generation
         fitness_progress.append(best_distance)
         shortest_paths.append(best_path)     
         end_time = time.perf_counter()
         elapsed_time = end_time - start_time
         cumulative_time += elapsed_time
         
-        # PLOT WITH MATPLOTLIB
+        # PLOT WITH MATPLOTLIB:
         fig, ax = plt.subplots() 
         tour_x = [solver.city_coords[city][0] for city in best_path]
         tour_y = [solver.city_coords[city][1] for city in best_path]
         ax.plot(tour_x, tour_y, 'r-', marker='o', label="Best Path")
-        # COMPLETE THE CIRCUIT:
-        ax.plot([tour_x[-1], tour_x[0]], [tour_y[-1], tour_y[0]], '-r', marker='o')
+
+        # LABEL THE START CITY:
+        start_x = solver.city_coords[best_path[0]][0]
+        start_y = solver.city_coords[best_path[0]][1]
+        ax.scatter(start_x, start_y, s=100, c='blue', label="Start City", edgecolor='black', zorder=5)
+
+        # ADD FIGURE LABELS:
         ax.set_title(f"GA Solution Path ({best_distance:.2f}) - Gen ({generation + 1})")
         if data_set == "D1_single_swap":
             xlabel = "Single Point Crossover | Swap Mutation"
@@ -78,10 +86,14 @@ if st.button("Run GA"):
         elif data_set == "D4_order_invert":
             xlabel = "Order Crossover | Inversion Mutation"
         ax.set_xlabel(xlabel)
-        ax.legend()
+        ax.legend(loc='upper left', bbox_to_anchor=(1,1))
 
+        # DISPLAY FIGURE IN SAME SPOT (ANIMATION): 
         dynamic_plot_placeholder.pyplot(fig)
+
+        # DISPLAY ALGORITHM RUNTIME:
         time_placeholder.write(f"**ELAPSED TIME:** {cumulative_time: .2f} seconds || {cumulative_time / 60: .2f} minutes\n")
+
         time.sleep(animation_speed)
         plt.close(fig)
 
@@ -102,7 +114,7 @@ if st.button("Run GA"):
     st.pyplot(fig1)
 
     # FINAL SOLUTION
-    st.write("### Final Solution:")
+    st.write("### FINAL SOLUTION:")
     final_best_distance = min(fitness_progress)
     final_best_path = shortest_paths[fitness_progress.index(final_best_distance)]
     st.write(f"**Final Best Distance:** {final_best_distance:.2f}")
@@ -112,10 +124,18 @@ if st.button("Run GA"):
     tour_x = [solver.city_coords[city][0] for city in final_best_path]
     tour_y = [solver.city_coords[city][1] for city in final_best_path]
     ax.plot(tour_x, tour_y, 'g-', marker='o', label="Final Best Path")
-    ax.set_title("Final Best Path Found")
-    ax.legend()
-    st.pyplot(fig2)
 
+    # LABEL THE START CITY:
+    start_x = solver.city_coords[best_path[0]][0]
+    start_y = solver.city_coords[best_path[0]][1]
+    ax.scatter(start_x, start_y, s=100, c='blue', label="Start City", edgecolor='black', zorder=5)
+
+    # LABELS:
+    ax.set_title("Final Best Path Found")
+    ax.legend(loc='upper left', bbox_to_anchor=(1,1))
+    st.pyplot(fig2)
+    st.write(f"**TOTAL RUNTIME:** {cumulative_time: .2f} seconds || {cumulative_time / 60: .2f} minutes\n")
+    st.write(f"SOLUTION PATH: {best_path}")
     # EXPLICITLY CLOSE THE FIGURES TO FREE MEMORY:
     plt.close(fig1)
     plt.close(fig2)
@@ -124,6 +144,9 @@ if st.button("Run GA"):
 
 
 # CODE GRAVEYARD:
+
+        # COMPLETE THE CIRCUIT:
+        # ax.plot([tour_x[-1], tour_x[0]], [tour_y[-1], tour_y[0]], '-r', marker='o')
 
 # x_coords = [city[0] for city in solver.city_coords.values()]
 # y_coords = [city[1] for city in solver.city_coords.values()]
